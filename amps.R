@@ -1,4 +1,19 @@
+#
+#
+#
 #=========== Code for Barb Beasley's 2012 data on fish/amphibians==========
+#
+#
+#
+
+getwd()
+path.to.data <- paste(wd, "/data/", sep = "")
+data.file.names <- list.files( paste(wd, "/data/", sep = ""))
+
+d <- read.csv(paste(path.to.data, data.file.names, sep = ""), stringsAsFactors = FALSE)
+write.csv(d, paste(path.to.data, "new.data.csv", sep = ""))
+
+
 
 #------Load and fix the data------
 # Load Fish/ amphibian data from Barb Beasley
@@ -27,6 +42,21 @@ table(amps$Site) #blank is still there but not occuring, so use unique()
 colnames(amps)
 amp1 <- amp[-(nrow(amp)), c(1, 17)]
 str(amp1)
+
+#Check that all the spps names are right
+unique(amp1$Spp)
+#There are some weird ones: RAAUDEAD, NONE, CODEAD
+#How many are there? 
+table(amp1$Spp) #looks like they are important except NONE (0)
+#What row (index #) are they in?
+grep("RAAUDEAD", amp1$Spp) #100
+grep("CODEAD", amp1$Spp) #441, 565
+
+#Change the names to just their species
+amp1$Spp[100] <- "RAAU"
+amp1$Spp[c(441, 565)] <- "CO"
+#Check that it worked
+table(amp1$Spp) #Yep the CODEAD #s and RAAU #s went to CO and RAAU respectively
 
 #------Split up the data and analysis-----
 #separate the data per site
@@ -61,17 +91,37 @@ library(vegan)
 install.packages("Hotelling")
 library(Hotelling)
 ?vegan::diversity # Gives you the format
-diversity(table(s1$Spp), index = "shannon") #1.490609
-diversity(table(s2$Spp), index = "shannon") #2.331664
-diversity(table(s3$Spp), index = "shannon") #1.839112
-diversity(table(s4$Spp), index = "shannon") #1.630797
-diversity(table(s5$Spp), index = "shannon") #1.274444
-diversity(table(s6$Spp), index = "shannon") #2.043437
+(d1<-diversity(table(s1$Spp), index = "shannon")) #1.490609
+(d2<-diversity(table(s2$Spp), index = "shannon")) #2.331664
+(d3<-diversity(table(s3$Spp), index = "shannon")) #1.839112
+(d4<-diversity(table(s4$Spp), index = "shannon")) #1.630797
+(d5<-diversity(table(s5$Spp), index = "shannon")) #1.274444
+(d6<-diversity(table(s6$Spp), index = "shannon")) #2.043437
 
+#not nessary or helpful
+hist(cbind(d1,d2,d3,d4,d5,d6), breaks = 3)
 
+#----- Taxon Loop-----
 #Now we need to make a new column for the higher taxon groups to...
 # which each species belongs
 
+#Make empty column
+amp1$taxa <- rep(NA, length(amp1$Site))
+
+#to see the 
+unique(amp1$Spp)
+
+
+#Make a Loop... not done
+for(i in 1:length(amp1$Site)){
+  print(i) #to check for errors but not needed. 
+  # Also i <- 42 # to check where (42) it goes wrong
+  sample.A <- sample(d$value[d$group == "A"], n.A, replace = TRUE)
+  sample.B <- sample(d$value[d$group == "B"], n.B, replace = TRUE)
+  store.means[i] <- mean(sample.A) - mean(sample.B) #stores values in empty vector
+  #diff.means <- mean(sample.A) - mean(sample.B) #longer way
+  #store.means <- diff.means
+}
 
 
 #--------- Rename the sites for simplicity #needs work--------
